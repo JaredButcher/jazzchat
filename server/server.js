@@ -91,7 +91,7 @@ app.get('/room/:roomId', (req, res) => {
 		return res.status(422).send({ successful: false, errMsg: 'Invalid room id!'});
 	}
 
-	if (!req.body.messageCount) {
+	if (!req.body.messageCount && req.body.messageCount !== 0) {
 		return res.status(422).send({successful: false, errMsg: 'Missing messageCount!'})
 	}
 
