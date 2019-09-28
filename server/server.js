@@ -9,25 +9,30 @@ let port;
 let serverName;
 let adminPassword;
 
-const rooms = {};
+const rooms = [];
 const activeSockets = [];
 
 app.post('/createRoom', (req, res) => {
+	console.log('received request to create room');
+
 	if (req.body.adminPassword !== adminPassword) {
+		console.log('user could not create room because they used the wrong password');
 		return res.status(401).send({ successful: false, errMsg: 'Invalid adminPassword!' });
 	}
 	
 	if (!req.body.name) {
+		console.log('user did not create room because they did not name it');
 		return res.status(422).send({ successful: false, errMsg: 'Missing name!' });
 	}
 
 	if (!req.body.description) {
+		console.log('user did not create room because they did not provide a description');
 		return res.status(422).send({ successful: false, errMsg: 'Missing description!' });
 	}
 
 	const newRoom = {};
 
-	newRoom.id = uuidv4();
+	newRoom.id = rooms.length;
 	newRoom.name = req.body.name;
 	newRoom.description = req.body.description;
 	newRoom.messages = [];
@@ -37,12 +42,15 @@ app.post('/createRoom', (req, res) => {
 		newRoom.accessPassword = req.body.accessPassword;
 	}
 
-	rooms[newRoom.id] = newRoom;
+	rooms.push(newRoom);
 
 	res.send({successful: true, newRoomId: newRoom.id});
+	console.log(`user created a new chatroom ${newRoom.name}`);
 });
 
 app.get('/room', (req, res) => {
+	console.log(`user requested a list of rooms`);
+
 	const parsedRooms = [];
 	for (roomId in rooms) {
 		const room = rooms[roomId];
@@ -53,6 +61,7 @@ app.get('/room', (req, res) => {
 });
 
 app.delete('/room/:roomId', (req, res) => {
+	console.log('user attempted to delete chatroom');
 	if (req.body.adminPassword !== adminPassword) {
 		return res.status(401).send({ successful: false, errMsg: 'Invalid adminPassword!'});
 	}
@@ -67,10 +76,12 @@ app.delete('/room/:roomId', (req, res) => {
 
 	delete rooms[req.params.roomId];
 
-	return res.send({successful: true})
+	res.send({successful: true});
+	console.log('delete successful!');
 });
 
 app.post('/room/:roomId/message', (req, res) => {
+	console.log('user attempted to post a new message');
 	if (!req.params.roomId) {
 		return res.status(422).send({ successful: false, errMsg: 'Invalid room id!'});
 	}
@@ -84,7 +95,7 @@ app.post('/room/:roomId/message', (req, res) => {
 		return res.status(401).send({successful: false, errMsg: 'Invalid password!'});
 	}
 
-	const messageId = uuidv4();
+	const messageId = room.messages.length;
 	const message = {
 		id: messageId,
 		sender: req.body.user,
@@ -103,9 +114,11 @@ app.post('/room/:roomId/message', (req, res) => {
 	});
 
 	res.send({successful: true, messageId: messageId});
+	console.log('message received!');
 });
 
 app.get('/room/:roomId', (req, res) => {
+	console.log('user wanted to view chatroom')
 	if (!req.params.roomId) {
 		return res.status(422).send({ successful: false, errMsg: 'Invalid room id!'});
 	}
@@ -132,14 +145,17 @@ app.get('/room/:roomId', (req, res) => {
 	const messages = room.messages.slice(start, messageOffsetIndex);
 
 	res.send({successful: true, name: room.name, description: room.description, messages: messages});
+	console.log('user was able to see chatroom');
 });
 
 
 app.ws('/', (socket, req) => {
+	console.log('socket connection established');
 	const roomSubscriptions = [];
 	const socketId = uuidv4();
 	activeSockets.push({id: socketId, roomSubscriptions: roomSubscriptions, socket: socket});
 	socket.on('message', (args) => {
+		console.log('socket message received', args)
 		args = JSON.parse(args);
 		if (!!args.subscribe) {
 			const roomId = args.subscribe.roomId;
@@ -200,7 +216,7 @@ try {
 	port = settings.port;
 	serverName = settings.serverName;
 	adminPassword = settings.adminPassword;
-	app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+	app.listen(port, () => console.log(`${serverName} listening on port ${port}!`));
 } catch (e) {
 	const readline = require('readline').createInterface({
 		input: process.stdin,
@@ -222,7 +238,7 @@ try {
 				console.log('"jazz-settings.json" created automatically for you.');
 				console.log();
 
-				app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+				app.listen(port, () => console.log(`${serverName} listening on port ${port}!`));
 			});
 		});
 	});
