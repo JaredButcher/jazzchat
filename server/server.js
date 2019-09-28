@@ -38,14 +38,14 @@ app.post('/createRoom', (req, res) => {
 
 	rooms[newRoom.id] = newRoom;
 
-	res.send({successful: true});
+	res.send({successful: true, newRoomId: newRoom.id});
 });
 
 app.get('/room', (req, res) => {
 	const parsedRooms = [];
 	for (roomId in rooms) {
 		const room = rooms[roomId];
-		parsedRooms.push({ id: room.id, name: room.name, description: room.description }); 
+		parsedRooms.push({ id: room.id, name: room.name, description: room.description, hasPassword: !!room.accessPassword }); 
 	};
 
 	res.send({ name: serverName, rooms: parsedRooms});
