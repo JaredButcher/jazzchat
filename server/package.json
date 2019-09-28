@@ -1,0 +1,28 @@
+{
+  "name": "jazzchat-server",
+  "version": "1.0.0",
+  "description": "A server for Jazzchat",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JaredButcher/jazzchat.git"
+  },
+  "keywords": [
+    "chat"
+  ],
+  "author": "brokenlogician@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JaredButcher/jazzchat/issues"
+  },
+  "homepage": "https://github.com/JaredButcher/jazzchat#readme"
+}
