@@ -26,6 +26,7 @@ app.post('/createRoom', (req, res) => {
 	newRoom.id = uuidv4();
 	newRoom.name = req.body.name;
 	newRoom.description = req.body.description;
+	newRoom.messages = [];
 
 	if (!!req.body.accessPassword) {
 		newRoom.accessPassword = req.body.accessPassword;
@@ -58,6 +59,60 @@ app.delete('/room/:roomId', (req, res) => {
 	delete rooms[req.params.roomId];
 
 	return res.send({successful: true})
+});
+
+app.post('/room/:roomId/message', (req, res) => {
+	if (!req.params.roomId) {
+		return res.status(422).send({ successful: false, errMsg: 'Invalid room id!'});
+	}
+
+	if (!rooms[req.params.roomId]) {
+		return res.status(404).send({successful: false, errMsg: 'A room with that id was not found!'})
+	}
+
+	const room = rooms[req.params.roomId];
+	if (!!room.accessPassword && room.accessPassword !== req.params.accessPassword) {
+		return res.status(401).send({successful: false, errMsg: 'Invalid password!'});
+	}
+
+	const messageId = uuidv4();
+	room.messages.push({
+		id: messageId,
+		sender: req.body.user,
+		message: req.body.message,
+		timeStamp: Math.floor(Date.now() / 1000),
+	});
+
+	res.send({successful: true, messageId: messageId});
+});
+
+app.get('/room/:roomId', (req, res) => {
+	if (!req.params.roomId) {
+		return res.status(422).send({ successful: false, errMsg: 'Invalid room id!'});
+	}
+
+	if (!req.body.messageCount) {
+		return res.status(422).send({successful: false, errMsg: 'Missing messageCount!'})
+	}
+
+	if (!rooms[req.params.roomId]) {
+		return res.status(404).send({successful: false, errMsg: 'A room with that id was not found!'})
+	}
+
+	const room = rooms[req.params.roomId];
+	if (!!room.accessPassword && room.accessPassword !== req.params.accessPassword) {
+		return res.status(401).send({successful: false, errMsg: 'Invalid password!'});
+	}
+
+	let messageOffsetIndex = room.messages.length ;
+	if (req.body.messageOffset) {
+		messageOffsetIndex = room.messages.findIndex((message) => message.id === req.body.messageOffset) + 1;
+	}
+
+	const start = Math.max(messageOffsetIndex - req.body.messageCount, 0);
+	const messages = room.messages.slice(start, messageOffsetIndex);
+
+	res.send({successful: true, name: room.name, description: room.description, messages: messages});
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
