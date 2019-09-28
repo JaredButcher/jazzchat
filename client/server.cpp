@@ -13,8 +13,8 @@
 #include <sstream>
 #include <iostream>
 
-using namespace utility;                    // Common utilities like string conversions
-using namespace web;                        // Common features like URIs.
+using namespace utility;
+using namespace web;
 
 using std::string;
 
@@ -49,7 +49,7 @@ std::pair<Message*,Message*> Server::requestMessageData(Room* where, int amount,
 {
   int roomId = where->getRoomID();
   string path = "/room/" + std::to_string(roomId);
-  json::value requestObject = json::value::object();
+  auto requestObject = json::value::object();
   requestObject[U("accessPassword")] = json::value::string(U(where->getRoomPass()));
   requestObject[U("messageCount")] = json::value::number(amount);
   if(!requestFromBack)
@@ -57,6 +57,7 @@ std::pair<Message*,Message*> Server::requestMessageData(Room* where, int amount,
 
   std::ostringstream strStream;
   requestObject.serialize(std::cout);
+  std::cout << std::endl;
   
   
   string responseJSON;
