@@ -48,7 +48,7 @@ app.post('/createRoom', (req, res) => {
 	console.log(`user created a new chatroom ${newRoom.name}`);
 });
 
-app.get('/room', (req, res) => {
+app.get('/server', (req, res) => {
 	console.log(`user requested a list of rooms`);
 
 	const parsedRooms = [];
