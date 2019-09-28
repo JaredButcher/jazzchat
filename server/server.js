@@ -3,11 +3,12 @@ const uuidv4 = require('uuid/v4');
 
 const app = express();
 const ws = require('express-ws')(app);
-const port = 3000;
 app.use(express.json());
 
-const serverName = 'Javascript Server';
-const adminPassword = 'Let me in!';
+let port;
+let serverName;
+let adminPassword;
+
 const rooms = {};
 const activeSockets = [];
 
@@ -191,4 +192,38 @@ function unsubscribeSocket(socketId, roomId) {
 	}
 }
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+var fs = require("fs");
+try {
+	const unparsedSettings = fs.readFileSync("jazz-settings.json");
+	const settings = JSON.parse(unparsedSettings);
+
+	port = settings.port;
+	serverName = settings.serverName;
+	adminPassword = settings.adminPassword;
+	app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+} catch (e) {
+	const readline = require('readline').createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+	
+	console.log('Configuration file "jazz-settings.json" not found!');
+	console.log();
+	readline.question('What PORT should the server run on? ', (inputPort) => {
+		port = inputPort;
+		readline.question('What should the server\'s name be? ', (inputServerName) => {
+			serverName = inputServerName;
+			readline.question('What should the administrator password be? ', (inputAdminPassword) => {
+				adminPassword = inputAdminPassword;
+				readline.close();
+
+				const settings = {port: port, serverName: serverName, adminPassword: adminPassword};
+				fs.writeFileSync('jazz-settings.json', JSON.stringify(settings));
+				console.log('"jazz-settings.json" created automatically for you.');
+				console.log();
+
+				app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+			});
+		});
+	});
+}

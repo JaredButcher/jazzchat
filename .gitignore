@@ -32,4 +32,5 @@
 *.app
 
 server/node_modules
+server/jazz-settings.json
 .vs
