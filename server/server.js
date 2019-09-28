@@ -6,7 +6,7 @@ app.use(express.json());
 
 const serverName = 'Javascript Server';
 const adminPassword = 'Let me in!';
-const rooms = [];
+const rooms = {};
 
 app.post('/createRoom', (req, res) => {
 	if (req.body.adminPassword !== adminPassword) {
@@ -31,15 +31,17 @@ app.post('/createRoom', (req, res) => {
 		newRoom.accessPassword = req.body.accessPassword;
 	}
 
-	rooms.push(newRoom);
+	rooms[newRoom.id] = newRoom;
 
 	res.send({successful: true});
 });
 
 app.get('/room', (req, res) => {
-	const parsedRooms = rooms.map((room) => { 
-		return { id: room.id, name: room.name, description: room.description }; 
-	});
+	const parsedRooms = [];
+	for (roomId in rooms) {
+		const room = rooms[roomId];
+		parsedRooms.push({ id: room.id, name: room.name, description: room.description }); 
+	};
 
 	res.send({ name: serverName, rooms: parsedRooms});
 });
@@ -49,14 +51,11 @@ app.delete('/room/:roomId', (req, res) => {
 		return res.status(401).send({ successful: false, errMsg: 'Invalid adminPassword!'});
 	}
 
-	const roomId = req.params.roomId;
-	const roomIndex = rooms.findIndex(room => room.id === roomId);
-
-	if (roomIndex === -1) {
+	if (!rooms[req.params.roomId]) {
 		return res.status(404).send({ successful: false, errMsg: 'Room not found!'});
 	}
 
-	rooms.splice(roomIndex, 1);
+	delete rooms[req.params.roomId];
 
 	return res.send({successful: true})
 });
