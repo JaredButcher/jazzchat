@@ -285,9 +285,6 @@ app.ws('/', (socket, req) => {
 
 				roomWatchers[roomId].push(socketId);
 				roomSubscriptions.push(room.roomId);
-
-				console.log({roomWatchers});
-				console.log({roomSubscriptions});
 			});
 		}
 		if (!!args.unsubscribe) {
